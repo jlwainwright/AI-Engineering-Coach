@@ -23,6 +23,8 @@ export interface CanvasHostOptions {
   distDir: string;
   /** Name of the repo/folder the canvas was opened in; scopes the initial "Current" workspace filter. */
   repoName?: string;
+  /** Exact HTTPS origin of an authenticated reverse proxy; loopback-only by default. */
+  publicOrigin?: string;
 }
 
 export interface CanvasHost {
@@ -73,6 +75,10 @@ const MIME: Record<string, string> = {
 
 export function createCanvasHost(options: CanvasHostOptions): CanvasHost {
   const webviewDir = path.join(options.distDir, 'webview');
+  const publicUrl = options.publicOrigin === undefined ? undefined : new URL(options.publicOrigin);
+  if (publicUrl && (publicUrl.protocol !== 'https:' || publicUrl.origin !== options.publicOrigin)) {
+    throw new Error('publicOrigin must be an exact HTTPS origin without a path or credentials.');
+  }
   const sseClients = new Set<ServerResponse>();
 
   let analyzer: Analyzer | undefined;
@@ -113,7 +119,9 @@ export function createCanvasHost(options: CanvasHostOptions): CanvasHost {
     } catch {
       return false;
     }
-    if (hostUrl.hostname !== '127.0.0.1') return false;
+    if (hostUrl.hostname !== '127.0.0.1') {
+      return publicUrl !== undefined && host === publicUrl.host && req.headers.origin === publicUrl.origin;
+    }
 
     const origin = req.headers.origin;
     if (origin === undefined) return true;

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Allow an explicitly configured HTTPS canvas origin without permitting other public origins.
 - Fix parse-worker out-of-memory on large log sets (#106): parsing now runs in a
   forked child process with a capped heap and streams results back in per-session
   chunks using ack-window backpressure to avoid native IPC buffer growth
