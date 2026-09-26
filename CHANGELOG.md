@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Report external harnesses that collect no sessions, and log harness collection
+  failures, instead of silently omitting the harness from the dashboard
 - Allow an explicitly configured HTTPS canvas origin without permitting other public origins.
 - Fix parse-worker out-of-memory on large log sets (#106): parsing now runs in a
   forked child process with a capped heap and streams results back in per-session

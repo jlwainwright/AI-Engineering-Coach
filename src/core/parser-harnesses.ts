@@ -11,6 +11,7 @@ import { findClaudeDirs, parseClaudeSessions, parseClaudeSessionsAsync } from '.
 import { findCodexDirs, parseCodexSessions } from './parser-codex';
 import { findOpenCodeDirs, parseOpenCodeSessions } from './parser-opencode';
 import { EditLocIndex } from './edit-loc-diff';
+import { warnCore } from './log';
 
 type WorkspaceMap = Map<string, Workspace>;
 
@@ -125,6 +126,7 @@ export async function collectExternalHarnessesAsync(
 
   for (let index = 0; index < EXTERNAL_HARNESSES.length; index++) {
     const harness = EXTERNAL_HARNESSES[index];
+    const before = sessions.length;
     handlers.onHarnessStart?.(harness.name, index, total, sessions.length);
     if (handlers.yieldToLoop) await handlers.yieldToLoop();
 
@@ -134,7 +136,13 @@ export async function collectExternalHarnessesAsync(
       } else {
         harness.collectSync(ctx);
       }
+      // A harness that contributes nothing is otherwise indistinguishable from
+      // one that is not installed: the dashboard simply omits it, and the user
+      // sees a healthy page missing a source they use every day.
+      const found = sessions.length - before;
+      if (found === 0) warnCore('parser-harnesses', `${harness.name}: no sessions found`);
     } catch (error) {
+      warnCore('parser-harnesses', `${harness.name}: collection failed`, error);
       handlers.onHarnessError?.(harness.name, error);
     }
 
