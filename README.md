@@ -138,9 +138,9 @@ npm install && npm run build
 
 A few features depend on the local VS Code language model and are hidden in canvas mode: **Skill Finder**, **Learning Center**, the **Level Up** section, and the **Context Health** AI review. Everything driven by your on-disk logs (Dashboard, Timeline, Coding Moments, Output, Patterns, Anti-Patterns) works the same. App sessions show up as **GitHub Copilot App** and terminal sessions as **GitHub Copilot CLI** in the harness breakdown.
 
-For an authenticated HTTPS reverse proxy, pass its exact origin as `publicOrigin`
-to `createCanvasHost`, for example `https://code.example.com`. Public RPC requests
-must match both that host and origin. Without this option, RPC remains loopback-only.
+For an authenticated HTTPS reverse proxy, set `COACH_PUBLIC_ORIGIN` to its exact
+origin, for example `https://code.example.com`. Public RPC requests must match both
+that host and origin. Without it, RPC remains loopback-only.
 Keep the Node listener on loopback and enforce authentication at the proxy.
 Run `npm run build && node scripts/test-canvas-origin.mjs` to verify the boundary.
 
