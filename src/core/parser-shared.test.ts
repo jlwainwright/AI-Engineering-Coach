@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   assertTrustedPath, detectDevcontainerFromRequests, extractSkillPathsFromText, createRequest, createSession,
-  recordFailedFile, recordSkippedLines, getParseWarningCounts, getParseWarnings, resetParseWarnings,
+  readFileSafe, recordFailedFile, recordSkippedLines, getParseWarningCounts, getParseWarnings, resetParseWarnings,
 } from './parser-shared';
 import { SessionRequest } from './types';
 
@@ -221,5 +223,30 @@ describe('createSession timestamp sanitization', () => {
     const session = createSession({ sessionId: 's1', workspaceId: 'w1', workspaceName: 'test', harness: 'vscode', requests: [zeroReq] });
     expect(session.creationDate).toBeNull();
     expect(session.lastMessageDate).toBeNull();
+  });
+});
+
+describe('readFileSafe budget', () => {
+  let dir: string;
+  let file: string;
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'coach-read-safe-'));
+    file = path.join(dir, 'sample.jsonl');
+    fs.writeFileSync(file, 'x'.repeat(4096));
+  });
+
+  it('rejects a file above the caller budget', () => {
+    expect(readFileSafe(file, 1024)).toBeNull();
+  });
+
+  it('reads a file within the caller budget, even past the default cap', () => {
+    // The point of the parameter: a parser whose format outgrows the shared
+    // 50 MB default passes its own budget instead of losing the file.
+    expect(readFileSafe(file, 50 * 1024 * 1024)?.length).toBe(4096);
+  });
+
+  it('keeps the default budget when the caller passes none', () => {
+    expect(readFileSafe(file)?.length).toBe(4096);
   });
 });

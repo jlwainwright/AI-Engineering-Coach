@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Read Claude transcripts up to 256 MB instead of the shared 50 MB in-memory cap,
+  so long sessions that append every tool result are no longer skipped
 - Report external harnesses that collect no sessions, and log harness collection
   failures, instead of silently omitting the harness from the dashboard
 - Allow an explicitly configured HTTPS canvas origin without permitting other public origins.

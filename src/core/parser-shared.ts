@@ -78,16 +78,17 @@ function getTrustedRoots(): string[] {
 
 /* ---- OOM protection ---- */
 
-/** Maximum file size (50 MB) that parsers will read into memory. */
+/** Maximum file size (50 MB) that parsers will read into memory by default.
+ *  Callers whose format produces much larger files pass their own budget. */
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 /**
- * Reads a file safely, returning null (with a warning) if the file exceeds MAX_FILE_SIZE.
+ * Reads a file safely, returning null (with a warning) if the file exceeds `maxBytes`.
  */
-export function readFileSafe(filePath: string): string | null {
+export function readFileSafe(filePath: string, maxBytes: number = MAX_FILE_SIZE): string | null {
   try {
     const stat = fs.statSync(filePath);
-    if (stat.size > MAX_FILE_SIZE) {
+    if (stat.size > maxBytes) {
       warnCore('parser', `Skipping oversized file (${(stat.size / 1024 / 1024).toFixed(1)} MB): ${filePath}`);
       return null;
     }

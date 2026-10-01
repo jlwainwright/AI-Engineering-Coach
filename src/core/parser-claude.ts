@@ -375,6 +375,12 @@ function collectClaudeAssistantData(lines: ClaudeLine[], startIndex: number, las
   return data;
 }
 
+/** Largest Claude transcript the parser will read in one piece. Claude appends
+ *  every tool result, file read and diff into a single jsonl per session, so a
+ *  long-running session outgrows the shared 50 MB budget that exists for
+ *  VS Code workspace state. Codex does not need this: it streams. */
+const CLAUDE_MAX_TRANSCRIPT_BYTES = 256 * 1024 * 1024;
+
 export function findClaudeDirs(): string[] {
   const home = process.env.HOME || process.env.USERPROFILE || '';
   const dirs: string[] = [];
@@ -704,7 +710,7 @@ function parseClaudeSessionFile(
   assertTrustedPath(filePath);
   let raw: string;
   try {
-    const content = readFileSafe(filePath);
+    const content = readFileSafe(filePath, CLAUDE_MAX_TRANSCRIPT_BYTES);
     if (content === null) return null;
     raw = content;
   } catch {
